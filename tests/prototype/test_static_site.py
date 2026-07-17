@@ -240,6 +240,18 @@ class StaticSiteDataTests(unittest.TestCase):
             self.assertIn("Demo data only", html)
             self.assertIn("<caption", html)
             self.assertIn('scope="col"', html)
+            self.assertIn('role="group"', html)
+            self.assertRegex(
+                html,
+                r'class="table-wrap"[^>]+tabindex="0"[^>]+aria-label=',
+            )
+            for filter_id in ("moduleFilter", "channelFilter", "bankFilter", "statusFilter"):
+                self.assertRegex(html, rf'<select id="{filter_id}"[^>]*\bdisabled\b')
+            code = page.stem
+            self.assertRegex(
+                html,
+                rf'href="{code}\.html"[^>]+aria-current="page"',
+            )
 
     def test_tablet_region_card_grids_use_two_columns(self):
         css = (PROTOTYPE / "assets/styles.css").read_text()

@@ -11,9 +11,29 @@
     "attempts", "success", "attemptAmountUsd", "successAmountUsd",
     "failed", "pending", "pendingOver2h"
   ];
+  const SAFE_STATE_CLASSES = new Set([
+    "healthy", "watch", "critical", "ready", "delayed",
+    "open", "acknowledged", "investigating", "recovered"
+  ]);
+
+  function safeStateClass(value) {
+    return SAFE_STATE_CLASSES.has(value) ? value : "unknown";
+  }
 
   function currentRate(row) {
     return row.attempts ? row.success / row.attempts * 100 : null;
+  }
+
+  function describePaymentRate(row) {
+    const current = currentRate(row);
+    const change = current == null ? null : current - Number(row.previousSr);
+    return {
+      current,
+      change,
+      currentLabel: rate(current),
+      changeLabel: change == null ? "—" : signedRate(change),
+      changeClass: change == null ? "neutral" : change < 0 ? "down" : "up"
+    };
   }
 
   function deriveTotals(rows) {
@@ -72,7 +92,8 @@
   }).format(value);
   const rate = value => value == null ? "—" : `${value.toFixed(2)}%`;
   const signedRate = value => `${value >= 0 ? "+" : ""}${value.toFixed(2)} pp`;
-  const titleCase = value => value.replace(/\b\w/g, letter => letter.toUpperCase());
+  const titleCase = value => String(value).replace(/\b\w/g, letter => letter.toUpperCase());
+  const widthPercent = value => Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
 
   function options(rows, field) {
     return [...new Set(rows.map(row => row[field]))].sort().map(value =>
@@ -132,7 +153,7 @@
     ];
     const max = Math.max(...buckets.map(([, value]) => value), 1);
     element.innerHTML = buckets.map(([label, value]) => `<div class="aging-row">
-      <span>${label}</span><div class="aging-track"><i style="width:${value / max * 100}%"></i></div><strong>${count(value)}</strong>
+      <span>${escapeHtml(label)}</span><div class="aging-track"><i style="width:${widthPercent(Number(value) / max * 100)}%"></i></div><strong>${count(value)}</strong>
     </div>`).join("");
   }
 
@@ -147,20 +168,18 @@
 
   function renderExceptions(region, element) {
     element.innerHTML = sortExceptions(region.paymentDetails).slice(0, 5).map(row => {
-      const current = currentRate(row);
-      const change = current == null ? 0 : current - row.previousSr;
-      return `<article class="exception-card ${escapeHtml(row.status)}">
-        <div class="exception-title"><span>${escapeHtml(row.module)} · ${escapeHtml(row.channel)} → ${escapeHtml(row.destinationBank)}</span><span>${rate(current)}</span></div>
-        <div class="exception-meta">Impact ${count(row.failed + row.pending)} · DoD <span class="${change < 0 ? "down" : "up"}">${signedRate(change)}</span> · ${escapeHtml(row.topError)}</div>
+      const paymentRate = describePaymentRate(row);
+      return `<article class="exception-card ${safeStateClass(row.status)}">
+        <div class="exception-title"><span>${escapeHtml(row.module)} · ${escapeHtml(row.channel)} → ${escapeHtml(row.destinationBank)}</span><span>${paymentRate.currentLabel}</span></div>
+        <div class="exception-meta">Impact ${count(row.failed + row.pending)} · DoD <span class="${paymentRate.changeClass}">${paymentRate.changeLabel}</span> · ${escapeHtml(row.topError)}</div>
         <div class="exception-action">Action: ${escapeHtml(recommendedAction(row))}</div>
       </article>`;
     }).join("");
   }
 
   function rowHtml(row) {
-    const current = currentRate(row);
-    const change = current == null ? 0 : current - row.previousSr;
-    return `<tr><td><span class="status-pill ${escapeHtml(row.status)}">${escapeHtml(row.module)}</span></td><td>${escapeHtml(row.channel)}</td><td>${escapeHtml(row.destinationBank)}</td><td>${count(row.attempts)}</td><td>${count(row.success)}</td><td>${rate(current)}</td><td>${money(row.attemptAmountUsd)}</td><td>${money(row.successAmountUsd)}</td><td>${count(row.failed)}</td><td>${count(row.pending)}</td><td>${count(row.pendingOver2h)}</td><td>${count(row.avgProcessingSec)} sec</td><td>${escapeHtml(row.topError)}</td><td class="${change < 0 ? "down" : "up"}">${signedRate(change)}</td></tr>`;
+    const paymentRate = describePaymentRate(row);
+    return `<tr><td><span class="status-pill ${safeStateClass(row.status)}">${escapeHtml(row.module)}</span></td><td>${escapeHtml(row.channel)}</td><td>${escapeHtml(row.destinationBank)}</td><td>${count(row.attempts)}</td><td>${count(row.success)}</td><td>${paymentRate.currentLabel}</td><td>${money(row.attemptAmountUsd)}</td><td>${money(row.successAmountUsd)}</td><td>${count(row.failed)}</td><td>${count(row.pending)}</td><td>${count(row.pendingOver2h)}</td><td>${count(row.avgProcessingSec)} sec</td><td>${escapeHtml(row.topError)}</td><td class="${paymentRate.changeClass}">${paymentRate.changeLabel}</td></tr>`;
   }
 
   function totalsHtml(totals) {
@@ -172,7 +191,8 @@
     return account.statusDistribution.map(row => {
       const module = modules.get(row.module);
       const calculatedTotal = row.active + row.inactive + row.banned;
-      if (!module || calculatedTotal !== row.total || module.active !== row.active || module.banned !== row.banned) {
+      const values = [row.active, row.inactive, row.banned, row.total];
+      if (!module || values.some(value => !Number.isFinite(value) || value < 0) || calculatedTotal !== row.total || module.active !== row.active || module.banned !== row.banned) {
         throw new Error(`${row.module} status distribution does not reconcile`);
       }
       const share = value => row.total ? value / row.total * 100 : 0;
@@ -189,7 +209,7 @@
     const distribution = summarizeAccountStatusDistribution(region.account).map(row => `<article class="distribution-card">
       <div class="distribution-title"><strong>${escapeHtml(row.module)}</strong><span>${count(row.total)} total</span></div>
       <div class="distribution-bar" aria-label="${escapeHtml(row.module)} status distribution">
-        <i class="active" style="width:${row.activeShare}%"></i><i class="inactive" style="width:${row.inactiveShare}%"></i><i class="banned" style="width:${row.bannedShare}%"></i>
+        <i class="active" style="width:${widthPercent(row.activeShare)}%"></i><i class="inactive" style="width:${widthPercent(row.inactiveShare)}%"></i><i class="banned" style="width:${widthPercent(row.bannedShare)}%"></i>
       </div>
       <div class="distribution-legend"><span><i class="key active"></i>Active ${count(row.active)} (${rate(row.activeShare)})</span><span><i class="key inactive"></i>Inactive ${count(row.inactive)} (${rate(row.inactiveShare)})</span><span><i class="key banned"></i>Banned ${count(row.banned)} (${rate(row.bannedShare)})</span></div>
     </article>`).join("");
@@ -198,7 +218,7 @@
       <dl><div><dt>New</dt><dd>${count(row.new)}</dd></div><div><dt>Active</dt><dd>${count(row.active)}</dd></div><div><dt>Checked</dt><dd>${count(row.checked)}</dd></div><div><dt>Rejected</dt><dd>${count(row.rejected)}</dd></div><div><dt>Banned</dt><dd>${count(row.banned)}</dd></div><div><dt>Default rate</dt><dd>${rate(row.defaultRate)}</dd></div></dl>
     </article>`).join("");
     const banks = [...region.account.bankExceptions].sort((a, b) => b.rejectRate - a.rejectRate).map(row =>
-      `<tr><td>${escapeHtml(row.bank)}</td><td>${rate(row.rejectRate)}</td><td><span class="status-pill ${escapeHtml(row.status)}">${titleCase(row.status)}</span></td></tr>`
+      `<tr><td>${escapeHtml(row.bank)}</td><td>${rate(row.rejectRate)}</td><td><span class="status-pill ${safeStateClass(row.status)}">${escapeHtml(titleCase(row.status))}</span></td></tr>`
     ).join("");
     element.innerHTML = `<section class="account-distribution" aria-labelledby="statusDistributionHeading"><h3 id="statusDistributionHeading">Status distribution</h3><div class="distribution-grid">${distribution}</div></section><div class="account-modules">${cards}</div><div class="table-wrap compact-table"><table><caption>Bank-level account exceptions</caption><thead><tr><th scope="col">Bank</th><th scope="col">Reject Rate</th><th scope="col">Status</th></tr></thead><tbody>${banks}</tbody></table></div>`;
   }
@@ -216,7 +236,7 @@
 
   function renderIncidents(region, element) {
     const activeCount = region.incidents.filter(item => item.state !== "recovered").length;
-    const cards = region.incidents.length ? region.incidents.map((incident, index) => `<article class="incident ${incident.state === "recovered" ? "recovered" : ""}">
+    const cards = region.incidents.length ? region.incidents.map((incident, index) => `<article class="incident ${safeStateClass(incident.state)}">
       <div class="incident-title"><span>${escapeHtml(incident.severity)} · ${escapeHtml(incident.title)}</span><span>${escapeHtml(titleCase(incident.state))}</span></div>
       <div class="incident-meta">${escapeHtml(incident.reference)} · Owner: ${escapeHtml(incident.owner)}<br>${escapeHtml(incident.impact)}<br>ACK deadline: ${escapeHtml(incident.ackDeadline.replace("T", " ").slice(0, 16))}</div>
       <div class="actions">${incidentButtons(incident, index)}</div>
@@ -225,13 +245,13 @@
   }
 
   function renderFreshness(region, element) {
-    element.innerHTML = region.freshness.map(item => `<div class="source"><span>${escapeHtml(item.source)}</span><strong class="${escapeHtml(item.state)}">${escapeHtml(item.state.toUpperCase())}</strong><small>Updated ${escapeHtml(item.updatedAt.replace("T", " ").slice(0, 16))}</small></div>`).join("");
+    element.innerHTML = region.freshness.map(item => `<div class="source"><span>${escapeHtml(item.source)}</span><strong class="${safeStateClass(item.state)}">${escapeHtml(String(item.state).toUpperCase())}</strong><small>Updated ${escapeHtml(String(item.updatedAt).replace("T", " ").slice(0, 16))}</small></div>`).join("");
   }
 
   function renderMetadata(metadata, region, elements) {
     elements.title.textContent = `${elements.code} · ${region.name}`;
-    elements.health.innerHTML = `<span class="dot"></span>${titleCase(region.health.status)} · ${region.health.score}/100`;
-    elements.health.className = `badge ${region.health.status}`;
+    elements.health.innerHTML = `<span class="dot"></span>${escapeHtml(titleCase(region.health.status))} · ${count(region.health.score)}/100`;
+    elements.health.className = `badge ${safeStateClass(region.health.status)}`;
     elements.subtitle.textContent = region.health.summary;
     elements.metadata.textContent = `Business date ${metadata.businessDate} · Generated ${metadata.generatedAt.replace("T", " ").slice(0, 16)} ${metadata.timezone}`;
     const ready = region.freshness.every(item => item.state === "ready");
@@ -241,6 +261,11 @@
 
   function createRegionApp(elements, fetcher) {
     let region;
+    const controls = [elements.moduleFilter, elements.channelFilter, elements.bankFilter, elements.statusFilter];
+    function setControlsDisabled(disabled) {
+      controls.forEach(control => { control.disabled = disabled; });
+    }
+    setControlsDisabled(true);
     function filters() {
       return {
         module: elements.moduleFilter.value,
@@ -250,6 +275,7 @@
       };
     }
     function renderTable() {
+      if (!region) return false;
       const visible = sortExceptions(filterRows(region.paymentDetails, filters()));
       elements.tableBody.innerHTML = visible.map(rowHtml).join("") || '<tr><td colspan="14" class="empty">No rows match all selected filters.</td></tr>';
       elements.tableTotals.innerHTML = totalsHtml(deriveTotals(visible));
@@ -257,14 +283,27 @@
       elements.reconciliation.textContent = reconciled
         ? `Reconciled: all ${visible.length} detail rows equal the payment summary.`
         : `Filtered view: ${visible.length} of ${region.paymentDetails.length} rows. Visible totals shown below.`;
+      return true;
     }
     function onIncidentClick(event) {
+      if (!region || !event.target || typeof event.target.closest !== "function") return false;
       const button = event.target.closest("button[data-incident]");
-      if (!button) return;
-      transitionIncident(region.incidents[Number(button.dataset.incident)], button.dataset.action);
+      if (!button) return false;
+      const incident = region.incidents[Number(button.dataset.incident)];
+      if (!incident) return false;
+      try {
+        transitionIncident(incident, button.dataset.action);
+      } catch (_error) {
+        return false;
+      }
       renderIncidents(region, elements.incidents);
+      return true;
     }
     async function load() {
+      region = undefined;
+      setControlsDisabled(true);
+      elements.loading.hidden = false;
+      elements.error.hidden = true;
       try {
         const response = await fetcher("../assets/mock-data.json");
         if (!response.ok) throw new Error(`Data request failed (${response.status})`);
@@ -283,17 +322,18 @@
         elements.channelFilter.insertAdjacentHTML("beforeend", options(region.paymentDetails, "channel"));
         elements.bankFilter.insertAdjacentHTML("beforeend", options(region.paymentDetails, "destinationBank"));
         renderTable();
+        setControlsDisabled(false);
         elements.loading.hidden = true;
         return true;
       } catch (error) {
+        region = undefined;
         elements.loading.hidden = true;
         elements.error.hidden = false;
         elements.error.textContent = `Unable to load dashboard data. ${error.message}`;
         return false;
       }
     }
-    [elements.moduleFilter, elements.channelFilter, elements.bankFilter, elements.statusFilter]
-      .forEach(select => select.addEventListener("change", renderTable));
+    controls.forEach(select => select.addEventListener("change", renderTable));
     elements.incidents.addEventListener("click", onIncidentClick);
     return { load, renderTable };
   }
@@ -312,5 +352,5 @@
     }, fetch).load();
   }
 
-  return { createRegionApp, deriveTotals, filterRows, sortExceptions, start, summarizeAccountStatusDistribution, transitionIncident };
+  return { createRegionApp, deriveTotals, describePaymentRate, filterRows, safeStateClass, sortExceptions, start, summarizeAccountStatusDistribution, transitionIncident };
 }));

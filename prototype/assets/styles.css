@@ -87,6 +87,7 @@ h1 { margin: 0; font-size: 24px; letter-spacing: -.03em; }
 .badge.watch,
 .badge.delayed { color: #92400e; background: #fef3c7; }
 .badge.critical { color: #991b1b; background: #fee2e2; }
+.badge.unknown { color: #475569; background: #e2e8f0; }
 
 .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -100,6 +101,7 @@ h1 { margin: 0; font-size: 24px; letter-spacing: -.03em; }
 .region-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .region-nav a { color: #d9e2f2; border-radius: 6px; padding: 5px 8px; font-weight: 700; }
 .region-nav a:hover { color: white; background: #273248; }
+.region-nav a[aria-current="page"] { color: white; background: #3c4962; }
 .notice { padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: white; }
 .notice.error { color: #991b1b; border-color: #f5c1bc; background: #fff8f7; }
 .drilldowns { display: flex; gap: 12px; }
@@ -156,6 +158,7 @@ tbody tr:hover { background: #f8fafc; }
 .table-wrap { overflow-x: auto; }
 .down { color: var(--red); font-weight: 750; }
 .up { color: var(--green); font-weight: 750; }
+.neutral { color: var(--muted); font-weight: 750; }
 
 .exceptions { display: grid; gap: 10px; }
 .exception-card { padding: 12px; border: 1px solid #f1d29f; border-left: 4px solid var(--amber); border-radius: 9px; background: #fffbeb; }
