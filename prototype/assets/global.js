@@ -1,11 +1,5 @@
 "use strict";
 
-const cards = document.querySelector("#regionCards");
-const loadingState = document.querySelector("#loadingState");
-const errorState = document.querySelector("#errorState");
-const reportMetadata = document.querySelector("#reportMetadata");
-const readinessSummary = document.querySelector("#readinessSummary");
-
 const countFormatter = new Intl.NumberFormat("en-US");
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -27,16 +21,33 @@ function sum(rows, field) {
   return rows.reduce((total, row) => total + row[field], 0);
 }
 
+function calculateRate(numerator, denominator, numeratorLabel, denominatorLabel) {
+  if (numerator > denominator) {
+    throw new Error(`${numeratorLabel} cannot exceed ${denominatorLabel}`);
+  }
+  return denominator === 0 ? null : 100 * numerator / denominator;
+}
+
+function formatRate(rate) {
+  return rate === null ? "—" : `${rate.toFixed(2)}%`;
+}
+
 function hasReadySources(region) {
-  return region.freshness.length > 0
+  return Array.isArray(region.freshness)
+    && region.freshness.length > 0
     && region.freshness.every(source => source.state.toLowerCase() === "ready");
 }
 
-function regionMetrics(region) {
+function summarizeRegion(region) {
+  region.paymentDetails.forEach(row => {
+    calculateRate(row.success, row.attempts, "successful payments", "attempts");
+  });
+  region.account.modules.forEach(row => {
+    calculateRate(row.rejected, row.checked, "rejected accounts", "checked accounts");
+  });
+
   const attempts = sum(region.paymentDetails, "attempts");
   const successful = sum(region.paymentDetails, "success");
-  const paymentAmount = sum(region.paymentDetails, "attemptAmountUsd");
-  const pendingOver2h = sum(region.paymentDetails, "pendingOver2h");
   const checkedAccounts = sum(region.account.modules, "checked");
   const rejectedAccounts = sum(region.account.modules, "rejected");
   const openIncidents = region.incidents.filter(
@@ -45,12 +56,36 @@ function regionMetrics(region) {
   ).length;
 
   return {
-    paymentSuccessRate: attempts ? 100 * successful / attempts : 0,
-    paymentAmount,
-    pendingOver2h,
-    accountRejectRate: checkedAccounts ? 100 * rejectedAccounts / checkedAccounts : 0,
+    paymentSuccessRate: calculateRate(
+      successful,
+      attempts,
+      "successful payments",
+      "attempts"
+    ),
+    paymentAmount: sum(region.paymentDetails, "attemptAmountUsd"),
+    pendingOver2h: sum(region.paymentDetails, "pendingOver2h"),
+    accountRejectRate: calculateRate(
+      rejectedAccounts,
+      checkedAccounts,
+      "rejected accounts",
+      "checked accounts"
+    ),
     openIncidents,
     readiness: hasReadySources(region) ? "READY" : "DELAYED"
+  };
+}
+
+function summarizeReadiness(regions) {
+  const values = Object.values(regions);
+  const readyCount = values.filter(hasReadySources).length;
+  const total = values.length;
+  const state = total > 0 && readyCount === total ? "ready" : "delayed";
+
+  return {
+    label: `DATA ${state.toUpperCase()} · ${readyCount}/${total}`,
+    readyCount,
+    state,
+    total
   };
 }
 
@@ -59,7 +94,7 @@ function metricLine(label, value) {
 }
 
 function regionCard(code, region) {
-  const metrics = regionMetrics(region);
+  const metrics = summarizeRegion(region);
   const status = region.health.status.toLowerCase();
   const accessibleName = `View ${region.name} (${code}) operations dashboard, ${status}, health score ${region.health.score}`;
 
@@ -70,45 +105,82 @@ function regionCard(code, region) {
         <span class="health">${escapeHtml(status.toUpperCase())}</span>
       </div>
       <div class="score"><span class="sr-only">Health score </span>${countFormatter.format(region.health.score)}</div>
-      ${metricLine("Payment Success Rate", `${metrics.paymentSuccessRate.toFixed(2)}%`)}
+      ${metricLine("Payment Success Rate", formatRate(metrics.paymentSuccessRate))}
       ${metricLine("Payment Amount", currencyFormatter.format(metrics.paymentAmount))}
       ${metricLine("Pending &gt;2h", countFormatter.format(metrics.pendingOver2h))}
-      ${metricLine("Account Reject Rate", `${metrics.accountRejectRate.toFixed(2)}%`)}
+      ${metricLine("Account Reject Rate", formatRate(metrics.accountRejectRate))}
       ${metricLine("Open P0/P1", countFormatter.format(metrics.openIncidents))}
       ${metricLine("Readiness", metrics.readiness)}
     </a>`;
 }
 
-function render(data) {
-  const regions = Object.entries(data.regions);
-  if (!regions.length) {
-    throw new Error("No regional data available");
+function updateReadiness(element, state, label) {
+  element.classList.remove("ready", "delayed");
+  element.classList.add(state);
+  element.innerHTML = `<span class="dot"></span>${label}`;
+}
+
+function createOverviewApp(elements, fetchData) {
+  function render(data) {
+    const regions = Object.entries(data.regions);
+    if (!regions.length) {
+      throw new Error("No regional data available");
+    }
+
+    elements.cards.innerHTML = regions
+      .map(([code, region]) => regionCard(code, region))
+      .join("");
+    elements.cards.setAttribute("aria-busy", "false");
+    elements.loadingState.hidden = true;
+    elements.errorState.hidden = true;
+
+    const readiness = summarizeReadiness(data.regions);
+    updateReadiness(elements.readinessSummary, readiness.state, readiness.label);
+    elements.reportMetadata.textContent = `Business Date: ${data.metadata.businessDate} · Generated: ${new Date(data.metadata.generatedAt).toLocaleString("en-US", { timeZone: data.metadata.timezone })}`;
   }
 
-  cards.innerHTML = regions.map(([code, region]) => regionCard(code, region)).join("");
-  cards.setAttribute("aria-busy", "false");
-  loadingState.hidden = true;
+  function showLoadError() {
+    elements.loadingState.hidden = true;
+    elements.errorState.hidden = false;
+    elements.cards.replaceChildren();
+    elements.cards.setAttribute("aria-busy", "false");
+    updateReadiness(elements.readinessSummary, "delayed", "DATA UNAVAILABLE");
+  }
 
-  const readyCount = regions.filter(([, region]) => hasReadySources(region)).length;
-  readinessSummary.innerHTML = `<span class="dot"></span>DATA READY · ${readyCount}/${regions.length}`;
-  reportMetadata.textContent = `Business Date: ${data.metadata.businessDate} · Generated: ${new Date(data.metadata.generatedAt).toLocaleString("en-US", { timeZone: data.metadata.timezone })}`;
-}
-
-function showLoadError() {
-  loadingState.hidden = true;
-  errorState.hidden = false;
-  cards.replaceChildren();
-  cards.setAttribute("aria-busy", "false");
-  readinessSummary.innerHTML = '<span class="dot"></span>DATA UNAVAILABLE';
-  readinessSummary.classList.add("down");
-}
-
-fetch("assets/mock-data.json")
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Data request failed with status ${response.status}`);
+  async function load() {
+    try {
+      const response = await fetchData("assets/mock-data.json");
+      if (!response.ok) {
+        throw new Error(`Data request failed with status ${response.status}`);
+      }
+      render(await response.json());
+      return true;
+    } catch (_error) {
+      showLoadError();
+      return false;
     }
-    return response.json();
-  })
-  .then(render)
-  .catch(showLoadError);
+  }
+
+  return { load };
+}
+
+const publicApi = {
+  createOverviewApp,
+  formatRate,
+  summarizeReadiness,
+  summarizeRegion
+};
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = publicApi;
+}
+
+if (typeof document !== "undefined") {
+  createOverviewApp({
+    cards: document.querySelector("#regionCards"),
+    loadingState: document.querySelector("#loadingState"),
+    errorState: document.querySelector("#errorState"),
+    reportMetadata: document.querySelector("#reportMetadata"),
+    readinessSummary: document.querySelector("#readinessSummary")
+  }, window.fetch.bind(window)).load();
+}

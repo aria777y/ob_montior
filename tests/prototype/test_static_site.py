@@ -190,6 +190,10 @@ class StaticSiteDataTests(unittest.TestCase):
                     f"missing local asset referenced by index.html: {asset}",
                 )
         self.assertRegex(html, r'<script\b[^>]*\bsrc="assets/global\.js"[^>]*\bdefer\b')
+        self.assertRegex(
+            html,
+            r'<[^>]+id="readinessSummary"[^>]+role="status"[^>]+aria-live="polite"',
+        )
         self.assertIn("Demo data only", html)
 
 
