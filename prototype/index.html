@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OB Operations Monitor · MVP</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #697386;
+      --line: #e3e8f1;
+      --blue: #246bfd;
+      --green: #0b9b61;
+      --amber: #d97706;
+      --red: #d92d20;
+      --shadow: 0 8px 24px rgba(35, 48, 78, .07);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font: 14px/1.5 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    button, select { font: inherit; }
+
+    header {
+      color: white;
+      background: #111827;
+      border-bottom: 1px solid #273248;
+    }
+    .nav, main { max-width: 1280px; margin: auto; }
+    .nav {
+      min-height: 66px;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand { font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+    .brand small { color: #93a4bf; font-size: 12px; font-weight: 600; margin-left: 8px; }
+    .controls { display: flex; align-items: center; gap: 10px; }
+    select {
+      border: 1px solid #3c4962;
+      border-radius: 8px;
+      padding: 8px 28px 8px 10px;
+      color: white;
+      background: #1f2937;
+    }
+
+    main { padding: 24px; }
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    h1 { margin: 0; font-size: 24px; letter-spacing: -.03em; }
+    .subtitle { margin: 3px 0 0; color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #087443;
+      background: #e8f8f0;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    .regions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .region { padding: 16px; border-top: 4px solid var(--green); }
+    .region.watch { border-top-color: var(--amber); }
+    .region.danger { border-top-color: var(--red); }
+    .region-head { display: flex; justify-content: space-between; align-items: center; }
+    .region-name { font-size: 16px; font-weight: 850; }
+    .health { font-size: 12px; font-weight: 800; color: var(--green); }
+    .watch .health { color: var(--amber); }
+    .danger .health { color: var(--red); }
+    .score { margin: 8px 0 10px; font-size: 30px; font-weight: 850; }
+    .metric-line { display: flex; justify-content: space-between; color: var(--muted); margin-top: 5px; }
+    .metric-line strong { color: var(--text); }
+
+    .grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 16px; margin-top: 16px; }
+    .panel { overflow: hidden; }
+    .panel-head {
+      padding: 15px 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .panel-head h2 { margin: 0; font-size: 16px; }
+    .panel-body { padding: 16px; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .kpi { padding: 12px; border-radius: 9px; background: #f7f9fc; }
+    .kpi span { display: block; color: var(--muted); font-size: 12px; }
+    .kpi strong { display: block; margin-top: 4px; font-size: 20px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { color: var(--muted); font-size: 12px; font-weight: 700; text-align: left; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .down { color: var(--red); font-weight: 750; }
+    .up { color: var(--green); font-weight: 750; }
+
+    .incident {
+      border: 1px solid #f5c1bc;
+      border-left: 4px solid var(--red);
+      border-radius: 9px;
+      padding: 12px;
+      background: #fff8f7;
+    }
+    .incident-title { display: flex; justify-content: space-between; gap: 8px; font-weight: 800; }
+    .incident-meta { margin: 7px 0; color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid #ccd5e2;
+      border-radius: 7px;
+      padding: 6px 9px;
+      color: #354052;
+      background: white;
+      cursor: pointer;
+    }
+    .btn.primary { border-color: var(--blue); color: white; background: var(--blue); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .empty { padding: 24px 10px; text-align: center; color: var(--muted); }
+
+    .freshness { display: grid; gap: 10px; }
+    .source { display: grid; grid-template-columns: 1fr auto; gap: 4px; padding-bottom: 9px; border-bottom: 1px solid var(--line); }
+    .source:last-child { padding-bottom: 0; border: 0; }
+    .source small { color: var(--muted); grid-column: 1 / -1; }
+    .ready { color: var(--green); font-weight: 800; }
+    .delayed { color: var(--amber); font-weight: 800; }
+
+    .footnote { color: var(--muted); text-align: right; font-size: 12px; margin-top: 18px; }
+
+    @media (max-width: 960px) {
+      .regions { grid-template-columns: repeat(2, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .nav, .statusbar { align-items: flex-start; flex-direction: column; }
+      main { padding: 16px; }
+      .regions, .kpis { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">OB Operations Monitor <small>V1 Lite MVP</small></div>
+      <div class="controls">
+        <label for="region">Region</label>
+        <select id="region">
+          <option value="ALL">All Regions</option>
+          <option value="ID">ID</option>
+          <option value="MY">MY</option>
+          <option value="TH">TH</option>
+          <option value="VN">VN</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="statusbar">
+      <div>
+        <h1>Daily Operations Report</h1>
+        <p class="subtitle">Business Date: 2026-07-16 · Generated: 10:00 BJT</p>
+      </div>
+      <span class="badge"><span class="dot"></span>DATA READY · 7/7</span>
+    </section>
+
+    <section class="regions" id="regionCards"></section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Payment · SPM / APM</h2>
+          <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1747919847017_2" target="_blank" rel="noreferrer">Open Dashboard ↗</a>
+        </div>
+        <div class="panel-body">
+          <div class="kpis" id="paymentKpis"></div>
+          <div class="table-wrap" style="margin-top:12px">
+            <table>
+              <thead><tr><th>Region</th><th>Module</th><th>Attempts</th><th>Success Rate</th><th>Amount (USD)</th><th>Top Issue</th></tr></thead>
+              <tbody id="paymentRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>P0 / P1 Incidents</h2><span id="incidentCount">1 Open</span></div>
+        <div class="panel-body" id="incidentList"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Bank Account · SPBA / APBA</h2>
+          <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1682059294184_24&page=1681712066116_2" target="_blank" rel="noreferrer">Open Dashboard ↗</a>
+        </div>
+        <div class="panel-body table-wrap">
+          <table>
+            <thead><tr><th>Region</th><th>Module</th><th>New</th><th>Active</th><th>Reject Rate</th><th>Banned</th></tr></thead>
+            <tbody id="accountRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Data Freshness</h2></div>
+        <div class="panel-body freshness">
+          <div class="source"><strong>Grafana</strong><span class="ready">READY</span><small>Updated 2 minutes ago · minute-level</small></div>
+          <div class="source"><strong>Payment Mart</strong><span class="ready">READY</span><small>T+1 partition: 2026-07-16</small></div>
+          <div class="source"><strong>Account Mart</strong><span class="ready">READY</span><small>T+1 partition: 2026-07-16</small></div>
+          <div class="source"><strong>DataSuite Dashboard</strong><span class="ready">READY</span><small>Last update: 2026-07-17 09:42 BJT</small></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="footnote">Demo data only · No payment or bank-account PII</p>
+  </main>
+
+  <script>
+    const regions = [
+      { code: "ID", score: 91, status: "WATCH", payment: "98.92%", account: "1.8% reject", incidents: 1 },
+      { code: "MY", score: 97, status: "HEALTHY", payment: "99.71%", account: "0.7% reject", incidents: 0 },
+      { code: "TH", score: 98, status: "HEALTHY", payment: "99.83%", account: "0.5% reject", incidents: 0 },
+      { code: "VN", score: 96, status: "HEALTHY", payment: "99.54%", account: "0.9% reject", incidents: 0 }
+    ];
+
+    const payments = [
+      { region: "ID", module: "SPM", attempts: 188420, sr: 98.92, amount: 8420000, issue: "Bank X timeout" },
+      { region: "ID", module: "APM", attempts: 45210, sr: 99.31, amount: 2190000, issue: "—" },
+      { region: "MY", module: "SPM", attempts: 92110, sr: 99.71, amount: 3810000, issue: "—" },
+      { region: "TH", module: "SPM", attempts: 114820, sr: 99.83, amount: 4260000, issue: "—" },
+      { region: "VN", module: "SPM", attempts: 86340, sr: 99.54, amount: 2980000, issue: "Channel Y pending" }
+    ];
+
+    const accounts = [
+      { region: "ID", module: "SPBA", added: 12430, active: 4812000, reject: 1.8, banned: 142 },
+      { region: "ID", module: "APBA", added: 3980, active: 1190000, reject: 1.2, banned: 31 },
+      { region: "MY", module: "SPBA", added: 5210, active: 1880000, reject: 0.7, banned: 24 },
+      { region: "TH", module: "SPBA", added: 6830, active: 2310000, reject: 0.5, banned: 18 },
+      { region: "VN", module: "SPBA", added: 4720, active: 1640000, reject: 0.9, banned: 27 }
+    ];
+
+    const incidents = [{ id: "INC-0716-018", region: "ID", severity: "P1", title: "SPM success rate degraded", detail: "Bank X · timeout · 1,284 affected", state: "OPEN" }];
+    const number = value => new Intl.NumberFormat("en-US").format(value);
+    const money = value => `$${(value / 1000000).toFixed(2)}M`;
+
+    function render(filter = "ALL") {
+      const visibleRegions = regions.filter(item => filter === "ALL" || item.code === filter);
+      const visiblePayments = payments.filter(item => filter === "ALL" || item.region === filter);
+      const visibleAccounts = accounts.filter(item => filter === "ALL" || item.region === filter);
+      const visibleIncidents = incidents.filter(item => filter === "ALL" || item.region === filter);
+
+      document.querySelector("#regionCards").innerHTML = visibleRegions.map(item => `
+        <article class="card region ${item.status === "WATCH" ? "watch" : ""}">
+          <div class="region-head"><span class="region-name">${item.code}</span><span class="health">${item.status}</span></div>
+          <div class="score">${item.score}</div>
+          <div class="metric-line"><span>Payment SR</span><strong>${item.payment}</strong></div>
+          <div class="metric-line"><span>Account</span><strong>${item.account}</strong></div>
+          <div class="metric-line"><span>Open P0/P1</span><strong>${item.incidents}</strong></div>
+        </article>`).join("");
+
+      const totalAttempts = visiblePayments.reduce((sum, item) => sum + item.attempts, 0);
+      const totalAmount = visiblePayments.reduce((sum, item) => sum + item.amount, 0);
+      const weightedSr = totalAttempts ? visiblePayments.reduce((sum, item) => sum + item.sr * item.attempts, 0) / totalAttempts : 0;
+      document.querySelector("#paymentKpis").innerHTML = [
+        ["Attempts", number(totalAttempts)], ["Success Rate", `${weightedSr.toFixed(2)}%`],
+        ["Amount", money(totalAmount)], ["Open P0/P1", visibleIncidents.length]
+      ].map(([label, value]) => `<div class="kpi"><span>${label}</span><strong>${value}</strong></div>`).join("");
+
+      document.querySelector("#paymentRows").innerHTML = visiblePayments.map(item => `
+        <tr><td>${item.region}</td><td>${item.module}</td><td>${number(item.attempts)}</td>
+        <td class="${item.sr < 99 ? "down" : "up"}">${item.sr.toFixed(2)}%</td><td>${money(item.amount)}</td><td>${item.issue}</td></tr>`).join("");
+
+      document.querySelector("#accountRows").innerHTML = visibleAccounts.map(item => `
+        <tr><td>${item.region}</td><td>${item.module}</td><td>${number(item.added)}</td><td>${number(item.active)}</td>
+        <td class="${item.reject > 1.5 ? "down" : ""}">${item.reject.toFixed(1)}%</td><td>${number(item.banned)}</td></tr>`).join("");
+
+      document.querySelector("#incidentCount").textContent = `${visibleIncidents.length} Open`;
+      document.querySelector("#incidentList").innerHTML = visibleIncidents.length ? visibleIncidents.map(item => `
+        <div class="incident" data-id="${item.id}">
+          <div class="incident-title"><span>${item.severity} · ${item.title}</span><span>${item.id}</span></div>
+          <div class="incident-meta">${item.region} · ${item.detail}</div>
+          <div>State: <strong class="incident-state">${item.state}</strong></div>
+          <div class="actions">
+            <button class="btn primary" data-action="ACK">ACK</button>
+            <button class="btn" data-action="IN_PROGRESS">Start</button>
+            <a class="btn" href="https://grafana.shopee.io/d/pFz_MiYHz/outbound-dod" target="_blank" rel="noreferrer">Grafana ↗</a>
+            <button class="btn" data-action="RECOVERED">Recovered</button>
+          </div>
+        </div>`).join("") : `<div class="empty">No open P0/P1 incident</div>`;
+    }
+
+    document.querySelector("#region").addEventListener("change", event => render(event.target.value));
+    document.querySelector("#incidentList").addEventListener("click", event => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+      const incident = event.target.closest(".incident");
+      incident.querySelector(".incident-state").textContent = action;
+      incident.querySelectorAll("button").forEach(button => button.disabled = button.dataset.action === action);
+    });
+    render();
+  </script>
+</body>
+</html>
