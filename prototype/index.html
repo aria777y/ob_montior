@@ -3,183 +3,78 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OB Operations Monitor · MVP</title>
+  <title>Global Overview · OB Operations Monitor</title>
   <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/global.js" defer></script>
 </head>
 <body>
   <header>
     <div class="nav">
       <div class="brand">OB Operations Monitor <small>V1 Lite MVP</small></div>
-      <div class="controls">
-        <label for="region">Region</label>
-        <select id="region">
-          <option value="ALL">All Regions</option>
-          <option value="ID">ID</option>
-          <option value="MY">MY</option>
-          <option value="TH">TH</option>
-          <option value="VN">VN</option>
-        </select>
-      </div>
+      <span>Global Overview</span>
     </div>
   </header>
 
   <main>
-    <section class="statusbar">
+    <section class="statusbar" aria-labelledby="pageTitle">
       <div>
-        <h1>Daily Operations Report</h1>
-        <p class="subtitle">Business Date: 2026-07-16 · Generated: 10:00 BJT</p>
+        <h1 id="pageTitle">Global Operations Overview</h1>
+        <p class="subtitle" id="reportMetadata">T+1 regional payment and bank-account health</p>
       </div>
-      <span class="badge"><span class="dot"></span>DATA READY · 4/4</span>
+      <span class="badge" id="readinessSummary"><span class="dot"></span>LOADING DATA</span>
     </section>
 
-    <section class="regions" id="regionCards"></section>
+    <p id="loadingState" role="status">Loading regional operations data…</p>
+    <p id="errorState" class="panel panel-body down" role="alert" hidden>
+      Regional data could not be loaded. Refresh the page to try again.
+    </p>
 
-    <section class="grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Payment · SPM / APM</h2>
-          <span>
-            <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1747919847017_2" target="_blank" rel="noreferrer">SPM ↗</a>
-            ·
-            <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1747919922876_31" target="_blank" rel="noreferrer">APM ↗</a>
-          </span>
-        </div>
-        <div class="panel-body">
-          <div class="kpis" id="paymentKpis"></div>
-          <div class="table-wrap space-top">
-            <table>
-              <caption class="sr-only">Outbound payment performance by region and module</caption>
-              <thead><tr><th scope="col">Region</th><th scope="col">Module</th><th scope="col">Attempts</th><th scope="col">Success Rate</th><th scope="col">Amount (USD)</th><th scope="col">Top Issue</th></tr></thead>
-              <tbody id="paymentRows"></tbody>
-            </table>
-          </div>
-        </div>
+    <nav aria-label="Region dashboards">
+      <div class="regions" id="regionCards" aria-busy="true">
+        <a class="card region" href="regions/id.html" aria-label="View Indonesia (ID) operations dashboard">
+          <div class="region-head"><span class="region-name">ID</span><span class="health">LOADING</span></div>
+          <div class="score">—</div>
+          <div class="metric-line"><span>Payment Success Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Payment Amount</span><strong>—</strong></div>
+          <div class="metric-line"><span>Pending >2h</span><strong>—</strong></div>
+          <div class="metric-line"><span>Account Reject Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Open P0/P1</span><strong>—</strong></div>
+          <div class="metric-line"><span>Readiness</span><strong>—</strong></div>
+        </a>
+        <a class="card region" href="regions/my.html" aria-label="View Malaysia (MY) operations dashboard">
+          <div class="region-head"><span class="region-name">MY</span><span class="health">LOADING</span></div>
+          <div class="score">—</div>
+          <div class="metric-line"><span>Payment Success Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Payment Amount</span><strong>—</strong></div>
+          <div class="metric-line"><span>Pending >2h</span><strong>—</strong></div>
+          <div class="metric-line"><span>Account Reject Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Open P0/P1</span><strong>—</strong></div>
+          <div class="metric-line"><span>Readiness</span><strong>—</strong></div>
+        </a>
+        <a class="card region" href="regions/th.html" aria-label="View Thailand (TH) operations dashboard">
+          <div class="region-head"><span class="region-name">TH</span><span class="health">LOADING</span></div>
+          <div class="score">—</div>
+          <div class="metric-line"><span>Payment Success Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Payment Amount</span><strong>—</strong></div>
+          <div class="metric-line"><span>Pending >2h</span><strong>—</strong></div>
+          <div class="metric-line"><span>Account Reject Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Open P0/P1</span><strong>—</strong></div>
+          <div class="metric-line"><span>Readiness</span><strong>—</strong></div>
+        </a>
+        <a class="card region" href="regions/vn.html" aria-label="View Vietnam (VN) operations dashboard">
+          <div class="region-head"><span class="region-name">VN</span><span class="health">LOADING</span></div>
+          <div class="score">—</div>
+          <div class="metric-line"><span>Payment Success Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Payment Amount</span><strong>—</strong></div>
+          <div class="metric-line"><span>Pending >2h</span><strong>—</strong></div>
+          <div class="metric-line"><span>Account Reject Rate</span><strong>—</strong></div>
+          <div class="metric-line"><span>Open P0/P1</span><strong>—</strong></div>
+          <div class="metric-line"><span>Readiness</span><strong>—</strong></div>
+        </a>
       </div>
+    </nav>
 
-      <div class="panel">
-        <div class="panel-head"><h2>P0 / P1 Incidents</h2><span id="incidentCount">1 Open</span></div>
-        <div class="panel-body" id="incidentList"></div>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Bank Account · SPBA / APBA</h2>
-          <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1682059294184_24&page=1681712066116_2" target="_blank" rel="noreferrer">Open Dashboard ↗</a>
-        </div>
-        <div class="panel-body table-wrap">
-          <table>
-            <caption class="sr-only">Payout bank account health by region and module</caption>
-            <thead><tr><th scope="col">Region</th><th scope="col">Module</th><th scope="col">New</th><th scope="col">Active</th><th scope="col">Reject Rate</th><th scope="col">Banned</th></tr></thead>
-            <tbody id="accountRows"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><h2>Data Freshness</h2></div>
-        <div class="panel-body freshness">
-          <div class="source"><strong>Grafana</strong><span class="ready">READY</span><small>Updated 2 minutes ago · minute-level</small></div>
-          <div class="source"><strong>Payment Mart</strong><span class="ready">READY</span><small>T+1 partition: 2026-07-16</small></div>
-          <div class="source"><strong>Account Mart</strong><span class="ready">READY</span><small>T+1 partition: 2026-07-16</small></div>
-          <div class="source"><strong>DataSuite Dashboard</strong><span class="ready">READY</span><small>Last update: 2026-07-17 09:42 BJT</small></div>
-        </div>
-      </div>
-    </section>
-
-    <p class="footnote">Demo data only · No payment or bank-account PII</p>
+    <p class="footnote">Demo data only · Aggregated operational signals</p>
   </main>
-
-  <script>
-    const regions = [
-      { code: "ID", score: 91, status: "WATCH", payment: "98.92%", account: "1.8% reject", incidents: 1 },
-      { code: "MY", score: 97, status: "HEALTHY", payment: "99.71%", account: "0.7% reject", incidents: 0 },
-      { code: "TH", score: 98, status: "HEALTHY", payment: "99.83%", account: "0.5% reject", incidents: 0 },
-      { code: "VN", score: 96, status: "HEALTHY", payment: "99.54%", account: "0.9% reject", incidents: 0 }
-    ];
-
-    const payments = [
-      { region: "ID", module: "SPM", attempts: 188420, sr: 98.92, amount: 8420000, issue: "Bank X timeout" },
-      { region: "ID", module: "APM", attempts: 45210, sr: 99.31, amount: 2190000, issue: "—" },
-      { region: "MY", module: "SPM", attempts: 92110, sr: 99.71, amount: 3810000, issue: "—" },
-      { region: "TH", module: "SPM", attempts: 114820, sr: 99.83, amount: 4260000, issue: "—" },
-      { region: "VN", module: "SPM", attempts: 86340, sr: 99.54, amount: 2980000, issue: "Channel Y pending" }
-    ];
-
-    const accounts = [
-      { region: "ID", module: "SPBA", added: 12430, active: 4812000, reject: 1.8, banned: 142 },
-      { region: "ID", module: "APBA", added: 3980, active: 1190000, reject: 1.2, banned: 31 },
-      { region: "MY", module: "SPBA", added: 5210, active: 1880000, reject: 0.7, banned: 24 },
-      { region: "TH", module: "SPBA", added: 6830, active: 2310000, reject: 0.5, banned: 18 },
-      { region: "VN", module: "SPBA", added: 4720, active: 1640000, reject: 0.9, banned: 27 }
-    ];
-
-    const incidents = [{ id: "INC-0716-018", region: "ID", severity: "P1", title: "SPM success rate degraded", detail: "Bank X · timeout · 1,284 affected", state: "OPEN" }];
-    const number = value => new Intl.NumberFormat("en-US").format(value);
-    const money = value => `$${(value / 1000000).toFixed(2)}M`;
-
-    let currentFilter = "ALL";
-
-    function render(filter = "ALL") {
-      currentFilter = filter;
-      const activeIncidents = incidents.filter(item => item.state !== "RECOVERED");
-      const visibleRegions = regions.filter(item => filter === "ALL" || item.code === filter);
-      const visiblePayments = payments.filter(item => filter === "ALL" || item.region === filter);
-      const visibleAccounts = accounts.filter(item => filter === "ALL" || item.region === filter);
-      const visibleIncidents = activeIncidents.filter(item => filter === "ALL" || item.region === filter);
-
-      document.querySelector("#regionCards").innerHTML = visibleRegions.map(item => `
-        <article class="card region ${item.status === "WATCH" ? "watch" : ""}">
-          <div class="region-head"><span class="region-name">${item.code}</span><span class="health">${item.status}</span></div>
-          <div class="score">${item.score}</div>
-          <div class="metric-line"><span>Payment SR</span><strong>${item.payment}</strong></div>
-          <div class="metric-line"><span>Account</span><strong>${item.account}</strong></div>
-          <div class="metric-line"><span>Open P0/P1</span><strong>${activeIncidents.filter(incident => incident.region === item.code).length}</strong></div>
-        </article>`).join("");
-
-      const totalAttempts = visiblePayments.reduce((sum, item) => sum + item.attempts, 0);
-      const totalAmount = visiblePayments.reduce((sum, item) => sum + item.amount, 0);
-      const weightedSr = totalAttempts ? visiblePayments.reduce((sum, item) => sum + item.sr * item.attempts, 0) / totalAttempts : 0;
-      document.querySelector("#paymentKpis").innerHTML = [
-        ["Attempts", number(totalAttempts)], ["Success Rate", `${weightedSr.toFixed(2)}%`],
-        ["Amount", money(totalAmount)], ["Open P0/P1", visibleIncidents.length]
-      ].map(([label, value]) => `<div class="kpi"><span>${label}</span><strong>${value}</strong></div>`).join("");
-
-      document.querySelector("#paymentRows").innerHTML = visiblePayments.map(item => `
-        <tr><td>${item.region}</td><td>${item.module}</td><td>${number(item.attempts)}</td>
-        <td class="${item.sr < 99 ? "down" : "up"}">${item.sr.toFixed(2)}%</td><td>${money(item.amount)}</td><td>${item.issue}</td></tr>`).join("");
-
-      document.querySelector("#accountRows").innerHTML = visibleAccounts.map(item => `
-        <tr><td>${item.region}</td><td>${item.module}</td><td>${number(item.added)}</td><td>${number(item.active)}</td>
-        <td class="${item.reject > 1.5 ? "down" : ""}">${item.reject.toFixed(1)}%</td><td>${number(item.banned)}</td></tr>`).join("");
-
-      document.querySelector("#incidentCount").textContent = `${visibleIncidents.length} Open`;
-      document.querySelector("#incidentList").innerHTML = visibleIncidents.length ? visibleIncidents.map(item => `
-        <div class="incident" data-id="${item.id}">
-          <div class="incident-title"><span>${item.severity} · ${item.title}</span><span>${item.id}</span></div>
-          <div class="incident-meta">${item.region} · ${item.detail}</div>
-          <div>State: <strong class="incident-state">${item.state}</strong></div>
-          <div class="actions">
-            <button class="btn primary" data-action="ACK" ${item.state === "ACK" ? "disabled" : ""}>ACK</button>
-            <button class="btn" data-action="IN_PROGRESS" ${item.state === "IN_PROGRESS" ? "disabled" : ""}>Start</button>
-            <a class="btn" href="https://grafana.shopee.io/d/pFz_MiYHz/outbound-dod" target="_blank" rel="noreferrer">Grafana ↗</a>
-            <button class="btn" data-action="RECOVERED">Recovered</button>
-          </div>
-        </div>`).join("") : `<div class="empty">No open P0/P1 incident</div>`;
-    }
-
-    document.querySelector("#region").addEventListener("change", event => render(event.target.value));
-    document.querySelector("#incidentList").addEventListener("click", event => {
-      const action = event.target.dataset.action;
-      if (!action) return;
-      const incidentElement = event.target.closest(".incident");
-      const incident = incidents.find(item => item.id === incidentElement.dataset.id);
-      if (!incident) return;
-      incident.state = action;
-      render(currentFilter);
-    });
-    render();
-  </script>
 </body>
 </html>

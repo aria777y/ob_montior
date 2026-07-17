@@ -163,6 +163,35 @@ class StaticSiteDataTests(unittest.TestCase):
                     f"prohibited PII key variant for {key} in {path.relative_to(ROOT)}",
                 )
 
+    def test_global_page_links_every_region(self):
+        html = (PROTOTYPE / "index.html").read_text()
+        for code in ("id", "my", "th", "vn"):
+            self.assertIn(f'href="regions/{code}.html"', html)
+        for label in (
+            "Payment Success Rate",
+            "Payment Amount",
+            "Pending >2h",
+            "Account Reject Rate",
+            "Open P0/P1",
+        ):
+            self.assertIn(label, html)
+
+    def test_global_page_uses_existing_local_assets(self):
+        page = PROTOTYPE / "index.html"
+        html = page.read_text()
+        local_assets = re.findall(
+            r'<(?:link|script)\b[^>]+(?:href|src)="([^"#:?]+)"', html
+        )
+        self.assertTrue(local_assets, "global page must reference local assets")
+        for asset in local_assets:
+            with self.subTest(asset=asset):
+                self.assertTrue(
+                    (page.parent / asset).is_file(),
+                    f"missing local asset referenced by index.html: {asset}",
+                )
+        self.assertRegex(html, r'<script\b[^>]*\bsrc="assets/global\.js"[^>]*\bdefer\b')
+        self.assertIn("Demo data only", html)
+
 
 if __name__ == "__main__":
     unittest.main()
