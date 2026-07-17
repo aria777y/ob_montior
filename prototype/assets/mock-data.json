@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "title": "OB Operations Monitor",
+    "version": "V1 Lite",
+    "businessDate": "2026-07-16",
+    "generatedAt": "2026-07-17T10:00:00+08:00",
+    "timezone": "Asia/Shanghai",
+    "currency": "USD",
+    "demo": true
+  },
+  "regions": {
+    "ID": {
+      "name": "Indonesia",
+      "health": { "score": 91, "status": "watch", "summary": "SPM timeout volume is elevated" },
+      "paymentDetails": [
+        { "module": "SPM", "channel": "Channel Alpha", "destinationBank": "Bank Nusantara", "attempts": 80000, "success": 78640, "attemptAmountUsd": 3520000, "successAmountUsd": 3460160, "failed": 920, "pending": 440, "pendingOver2h": 60, "avgProcessingSec": 58, "topError": "timeout", "previousSr": 99.1, "status": "critical" },
+        { "module": "SPM", "channel": "Channel Beta", "destinationBank": "Bank Mandiri", "attempts": 50000, "success": 49600, "attemptAmountUsd": 2200000, "successAmountUsd": 2182400, "failed": 260, "pending": 140, "pendingOver2h": 30, "avgProcessingSec": 44, "topError": "bank unavailable", "previousSr": 99.35, "status": "watch" },
+        { "module": "APM", "channel": "Channel Alpha", "destinationBank": "Bank Central", "attempts": 35000, "success": 34755, "attemptAmountUsd": 1575000, "successAmountUsd": 1563975, "failed": 170, "pending": 75, "pendingOver2h": 25, "avgProcessingSec": 39, "topError": "validation", "previousSr": 99.42, "status": "watch" },
+        { "module": "APM", "channel": "Channel Gamma", "destinationBank": "Bank Rakyat", "attempts": 25000, "success": 24875, "attemptAmountUsd": 1125000, "successAmountUsd": 1119375, "failed": 85, "pending": 40, "pendingOver2h": 20, "avgProcessingSec": 34, "topError": "timeout", "previousSr": 99.58, "status": "healthy" }
+      ],
+      "trends": {
+        "dates": ["2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16"],
+        "SPM": [99.31, 99.28, 99.34, 99.22, 99.18, 99.19, 98.64],
+        "APM": [99.55, 99.51, 99.58, 99.49, 99.52, 99.49, 99.31]
+      },
+      "pendingAging": { "under5m": 310, "from5To30m": 160, "from30mTo2h": 90, "over2h": 135 },
+      "account": {
+        "status": "watch",
+        "modules": [
+          { "module": "SPBA", "new": 12430, "active": 4812000, "checked": 12180, "rejected": 224, "rejectRate": 1.8, "banned": 142, "defaultRate": 83.4 },
+          { "module": "APBA", "new": 3980, "active": 1190000, "checked": 3920, "rejected": 47, "rejectRate": 1.2, "banned": 31, "defaultRate": 79.8 }
+        ],
+        "bankExceptions": [
+          { "bank": "Bank Nusantara", "rejectRate": 2.4, "status": "watch" },
+          { "bank": "Bank Mandiri", "rejectRate": 1.3, "status": "healthy" }
+        ]
+      },
+      "incidents": [
+        { "reference": "INC-0716-018", "severity": "P1", "title": "SPM success rate degraded", "owner": "Payment Operations", "impact": "Bank Nusantara timeout affecting 1,284 attempts", "ackDeadline": "2026-07-17T10:15:00+08:00", "state": "open" }
+      ],
+      "freshness": [
+        { "source": "Grafana", "state": "ready", "updatedAt": "2026-07-17T09:58:00+08:00" },
+        { "source": "Payment Mart", "state": "ready", "updatedAt": "2026-07-17T09:35:00+08:00" },
+        { "source": "Account Mart", "state": "ready", "updatedAt": "2026-07-17T09:37:00+08:00" },
+        { "source": "DataSuite", "state": "ready", "updatedAt": "2026-07-17T09:42:00+08:00" }
+      ]
+    },
+    "MY": {
+      "name": "Malaysia",
+      "health": { "score": 97, "status": "healthy", "summary": "All core signals are within range" },
+      "paymentDetails": [
+        { "module": "SPM", "channel": "Channel Alpha", "destinationBank": "Bank Malaya", "attempts": 45000, "success": 44775, "attemptAmountUsd": 1890000, "successAmountUsd": 1880550, "failed": 150, "pending": 75, "pendingOver2h": 12, "avgProcessingSec": 31, "topError": "timeout", "previousSr": 99.48, "status": "healthy" },
+        { "module": "SPM", "channel": "Channel Delta", "destinationBank": "Bank Commerce", "attempts": 32000, "success": 31872, "attemptAmountUsd": 1344000, "successAmountUsd": 1338624, "failed": 90, "pending": 38, "pendingOver2h": 6, "avgProcessingSec": 28, "topError": "bank unavailable", "previousSr": 99.56, "status": "healthy" },
+        { "module": "APM", "channel": "Channel Alpha", "destinationBank": "Bank Nasional", "attempts": 28000, "success": 27944, "attemptAmountUsd": 1176000, "successAmountUsd": 1173648, "failed": 40, "pending": 16, "pendingOver2h": 3, "avgProcessingSec": 25, "topError": "validation", "previousSr": 99.76, "status": "healthy" },
+        { "module": "APM", "channel": "Channel Beta", "destinationBank": "Bank Rakyat MY", "attempts": 22000, "success": 21934, "attemptAmountUsd": 924000, "successAmountUsd": 921228, "failed": 48, "pending": 18, "pendingOver2h": 4, "avgProcessingSec": 27, "topError": "timeout", "previousSr": 99.68, "status": "healthy" }
+      ],
+      "trends": {
+        "dates": ["2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16"],
+        "SPM": [99.58, 99.61, 99.64, 99.6, 99.63, 99.52, 99.54],
+        "APM": [99.72, 99.75, 99.71, 99.76, 99.74, 99.72, 99.75]
+      },
+      "pendingAging": { "under5m": 76, "from5To30m": 31, "from30mTo2h": 15, "over2h": 25 },
+      "account": {
+        "status": "healthy",
+        "modules": [
+          { "module": "SPBA", "new": 5210, "active": 1880000, "checked": 5170, "rejected": 36, "rejectRate": 0.7, "banned": 24, "defaultRate": 85.1 },
+          { "module": "APBA", "new": 1840, "active": 620000, "checked": 1828, "rejected": 9, "rejectRate": 0.5, "banned": 8, "defaultRate": 81.2 }
+        ],
+        "bankExceptions": [
+          { "bank": "Bank Malaya", "rejectRate": 0.9, "status": "healthy" },
+          { "bank": "Bank Commerce", "rejectRate": 0.6, "status": "healthy" }
+        ]
+      },
+      "incidents": [],
+      "freshness": [
+        { "source": "Grafana", "state": "ready", "updatedAt": "2026-07-17T09:59:00+08:00" },
+        { "source": "Payment Mart", "state": "ready", "updatedAt": "2026-07-17T09:36:00+08:00" },
+        { "source": "Account Mart", "state": "ready", "updatedAt": "2026-07-17T09:38:00+08:00" },
+        { "source": "DataSuite", "state": "ready", "updatedAt": "2026-07-17T09:43:00+08:00" }
+      ]
+    },
+    "TH": {
+      "name": "Thailand",
+      "health": { "score": 98, "status": "healthy", "summary": "Payment and account signals are stable" },
+      "paymentDetails": [
+        { "module": "SPM", "channel": "Channel Alpha", "destinationBank": "Bank Siam", "attempts": 52000, "success": 51922, "attemptAmountUsd": 2028000, "successAmountUsd": 2024958, "failed": 55, "pending": 23, "pendingOver2h": 4, "avgProcessingSec": 24, "topError": "timeout", "previousSr": 99.82, "status": "healthy" },
+        { "module": "SPM", "channel": "Channel Gamma", "destinationBank": "Bank Krung", "attempts": 38000, "success": 37924, "attemptAmountUsd": 1482000, "successAmountUsd": 1479036, "failed": 54, "pending": 22, "pendingOver2h": 5, "avgProcessingSec": 26, "topError": "bank unavailable", "previousSr": 99.76, "status": "healthy" },
+        { "module": "APM", "channel": "Channel Beta", "destinationBank": "Bank Thai", "attempts": 31000, "success": 30969, "attemptAmountUsd": 1209000, "successAmountUsd": 1207791, "failed": 20, "pending": 11, "pendingOver2h": 2, "avgProcessingSec": 22, "topError": "validation", "previousSr": 99.87, "status": "healthy" },
+        { "module": "APM", "channel": "Channel Delta", "destinationBank": "Bank Ayutthaya", "attempts": 24000, "success": 23964, "attemptAmountUsd": 936000, "successAmountUsd": 934596, "failed": 24, "pending": 12, "pendingOver2h": 3, "avgProcessingSec": 23, "topError": "timeout", "previousSr": 99.83, "status": "healthy" }
+      ],
+      "trends": {
+        "dates": ["2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16"],
+        "SPM": [99.79, 99.81, 99.84, 99.8, 99.83, 99.8, 99.83],
+        "APM": [99.86, 99.88, 99.85, 99.9, 99.87, 99.85, 99.87]
+      },
+      "pendingAging": { "under5m": 30, "from5To30m": 17, "from30mTo2h": 7, "over2h": 14 },
+      "account": {
+        "status": "healthy",
+        "modules": [
+          { "module": "SPBA", "new": 6830, "active": 2310000, "checked": 6790, "rejected": 34, "rejectRate": 0.5, "banned": 18, "defaultRate": 86.4 },
+          { "module": "APBA", "new": 2110, "active": 710000, "checked": 2095, "rejected": 8, "rejectRate": 0.4, "banned": 6, "defaultRate": 82.7 }
+        ],
+        "bankExceptions": [
+          { "bank": "Bank Siam", "rejectRate": 0.6, "status": "healthy" },
+          { "bank": "Bank Krung", "rejectRate": 0.5, "status": "healthy" }
+        ]
+      },
+      "incidents": [],
+      "freshness": [
+        { "source": "Grafana", "state": "ready", "updatedAt": "2026-07-17T09:58:00+08:00" },
+        { "source": "Payment Mart", "state": "ready", "updatedAt": "2026-07-17T09:34:00+08:00" },
+        { "source": "Account Mart", "state": "ready", "updatedAt": "2026-07-17T09:39:00+08:00" },
+        { "source": "DataSuite", "state": "ready", "updatedAt": "2026-07-17T09:41:00+08:00" }
+      ]
+    },
+    "VN": {
+      "name": "Vietnam",
+      "health": { "score": 95, "status": "watch", "summary": "Channel Delta pending aging requires attention" },
+      "paymentDetails": [
+        { "module": "SPM", "channel": "Channel Alpha", "destinationBank": "Bank Viet", "attempts": 41000, "success": 40795, "attemptAmountUsd": 1353000, "successAmountUsd": 1346235, "failed": 135, "pending": 70, "pendingOver2h": 18, "avgProcessingSec": 38, "topError": "timeout", "previousSr": 99.62, "status": "watch" },
+        { "module": "SPM", "channel": "Channel Delta", "destinationBank": "Bank Mekong", "attempts": 30000, "success": 29760, "attemptAmountUsd": 990000, "successAmountUsd": 982080, "failed": 140, "pending": 100, "pendingOver2h": 42, "avgProcessingSec": 51, "topError": "bank unavailable", "previousSr": 99.35, "status": "critical" },
+        { "module": "APM", "channel": "Channel Beta", "destinationBank": "Bank Saigon", "attempts": 26000, "success": 25896, "attemptAmountUsd": 858000, "successAmountUsd": 854568, "failed": 72, "pending": 32, "pendingOver2h": 8, "avgProcessingSec": 33, "topError": "validation", "previousSr": 99.66, "status": "healthy" },
+        { "module": "APM", "channel": "Channel Gamma", "destinationBank": "Bank Hanoi", "attempts": 21000, "success": 20937, "attemptAmountUsd": 693000, "successAmountUsd": 690921, "failed": 45, "pending": 18, "pendingOver2h": 5, "avgProcessingSec": 29, "topError": "timeout", "previousSr": 99.73, "status": "healthy" }
+      ],
+      "trends": {
+        "dates": ["2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16"],
+        "SPM": [99.52, 99.55, 99.48, 99.5, 99.42, 99.51, 99.37],
+        "APM": [99.7, 99.72, 99.68, 99.74, 99.71, 99.69, 99.62]
+      },
+      "pendingAging": { "under5m": 72, "from5To30m": 45, "from30mTo2h": 30, "over2h": 73 },
+      "account": {
+        "status": "healthy",
+        "modules": [
+          { "module": "SPBA", "new": 4720, "active": 1640000, "checked": 4670, "rejected": 42, "rejectRate": 0.9, "banned": 27, "defaultRate": 84.2 },
+          { "module": "APBA", "new": 1530, "active": 490000, "checked": 1514, "rejected": 11, "rejectRate": 0.7, "banned": 9, "defaultRate": 80.9 }
+        ],
+        "bankExceptions": [
+          { "bank": "Bank Mekong", "rejectRate": 1.2, "status": "watch" },
+          { "bank": "Bank Viet", "rejectRate": 0.8, "status": "healthy" }
+        ]
+      },
+      "incidents": [
+        { "reference": "INC-0716-024", "severity": "P1", "title": "Pending aging elevated", "owner": "Payment Operations", "impact": "Channel Delta has 42 pending attempts over two hours", "ackDeadline": "2026-07-17T10:20:00+08:00", "state": "acknowledged" }
+      ],
+      "freshness": [
+        { "source": "Grafana", "state": "ready", "updatedAt": "2026-07-17T09:57:00+08:00" },
+        { "source": "Payment Mart", "state": "ready", "updatedAt": "2026-07-17T09:33:00+08:00" },
+        { "source": "Account Mart", "state": "ready", "updatedAt": "2026-07-17T09:36:00+08:00" },
+        { "source": "DataSuite", "state": "delayed", "updatedAt": "2026-07-17T09:20:00+08:00" }
+      ]
+    }
+  }
+}
