@@ -196,6 +196,37 @@ class StaticSiteDataTests(unittest.TestCase):
         )
         self.assertIn("Demo data only", html)
 
+    def test_region_pages_use_shared_renderer_and_required_sections(self):
+        for code in ("id", "my", "th", "vn"):
+            page = PROTOTYPE / f"regions/{code}.html"
+            html = page.read_text()
+            self.assertIn(f'data-region="{code.upper()}"', html)
+            self.assertIn('../assets/region.js', html)
+            for element_id in (
+                "paymentSummary",
+                "trend",
+                "pendingAging",
+                "exceptions",
+                "paymentDetails",
+                "accountHealth",
+                "incidents",
+                "freshness",
+            ):
+                self.assertIn(f'id="{element_id}"', html)
+
+    def test_region_pages_reference_existing_assets_and_accessible_table(self):
+        for page in sorted((PROTOTYPE / "regions").glob("*.html")):
+            html = page.read_text()
+            local_assets = re.findall(
+                r'<(?:link|script)\b[^>]+(?:href|src)="([^"#:?]+)"', html
+            )
+            for asset in local_assets:
+                with self.subTest(page=page.name, asset=asset):
+                    self.assertTrue((page.parent / asset).is_file())
+            self.assertIn("Demo data only", html)
+            self.assertIn("<caption", html)
+            self.assertIn('scope="col"', html)
+
 
 if __name__ == "__main__":
     unittest.main()
