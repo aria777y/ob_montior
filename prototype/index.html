@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,6 +75,7 @@
       font-weight: 800;
     }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
     .regions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .card, .panel {
@@ -184,7 +185,7 @@
         <h1>Daily Operations Report</h1>
         <p class="subtitle">Business Date: 2026-07-16 · Generated: 10:00 BJT</p>
       </div>
-      <span class="badge"><span class="dot"></span>DATA READY · 7/7</span>
+      <span class="badge"><span class="dot"></span>DATA READY · 4/4</span>
     </section>
 
     <section class="regions" id="regionCards"></section>
@@ -193,13 +194,18 @@
       <div class="panel">
         <div class="panel-head">
           <h2>Payment · SPM / APM</h2>
-          <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1747919847017_2" target="_blank" rel="noreferrer">Open Dashboard ↗</a>
+          <span>
+            <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1747919847017_2" target="_blank" rel="noreferrer">SPM ↗</a>
+            ·
+            <a href="https://datasuite.shopee.io/dashboard/data_portal/e09ed7d9-bc26-47e3-88db-204251894238/normal?menu_id=menu_1747919922876_31" target="_blank" rel="noreferrer">APM ↗</a>
+          </span>
         </div>
         <div class="panel-body">
           <div class="kpis" id="paymentKpis"></div>
           <div class="table-wrap" style="margin-top:12px">
             <table>
-              <thead><tr><th>Region</th><th>Module</th><th>Attempts</th><th>Success Rate</th><th>Amount (USD)</th><th>Top Issue</th></tr></thead>
+              <caption class="sr-only">Outbound payment performance by region and module</caption>
+              <thead><tr><th scope="col">Region</th><th scope="col">Module</th><th scope="col">Attempts</th><th scope="col">Success Rate</th><th scope="col">Amount (USD)</th><th scope="col">Top Issue</th></tr></thead>
               <tbody id="paymentRows"></tbody>
             </table>
           </div>
@@ -220,7 +226,8 @@
         </div>
         <div class="panel-body table-wrap">
           <table>
-            <thead><tr><th>Region</th><th>Module</th><th>New</th><th>Active</th><th>Reject Rate</th><th>Banned</th></tr></thead>
+            <caption class="sr-only">Payout bank account health by region and module</caption>
+            <thead><tr><th scope="col">Region</th><th scope="col">Module</th><th scope="col">New</th><th scope="col">Active</th><th scope="col">Reject Rate</th><th scope="col">Banned</th></tr></thead>
             <tbody id="accountRows"></tbody>
           </table>
         </div>
@@ -268,11 +275,15 @@
     const number = value => new Intl.NumberFormat("en-US").format(value);
     const money = value => `$${(value / 1000000).toFixed(2)}M`;
 
+    let currentFilter = "ALL";
+
     function render(filter = "ALL") {
+      currentFilter = filter;
+      const activeIncidents = incidents.filter(item => item.state !== "RECOVERED");
       const visibleRegions = regions.filter(item => filter === "ALL" || item.code === filter);
       const visiblePayments = payments.filter(item => filter === "ALL" || item.region === filter);
       const visibleAccounts = accounts.filter(item => filter === "ALL" || item.region === filter);
-      const visibleIncidents = incidents.filter(item => filter === "ALL" || item.region === filter);
+      const visibleIncidents = activeIncidents.filter(item => filter === "ALL" || item.region === filter);
 
       document.querySelector("#regionCards").innerHTML = visibleRegions.map(item => `
         <article class="card region ${item.status === "WATCH" ? "watch" : ""}">
@@ -280,7 +291,7 @@
           <div class="score">${item.score}</div>
           <div class="metric-line"><span>Payment SR</span><strong>${item.payment}</strong></div>
           <div class="metric-line"><span>Account</span><strong>${item.account}</strong></div>
-          <div class="metric-line"><span>Open P0/P1</span><strong>${item.incidents}</strong></div>
+          <div class="metric-line"><span>Open P0/P1</span><strong>${activeIncidents.filter(incident => incident.region === item.code).length}</strong></div>
         </article>`).join("");
 
       const totalAttempts = visiblePayments.reduce((sum, item) => sum + item.attempts, 0);
@@ -306,8 +317,8 @@
           <div class="incident-meta">${item.region} · ${item.detail}</div>
           <div>State: <strong class="incident-state">${item.state}</strong></div>
           <div class="actions">
-            <button class="btn primary" data-action="ACK">ACK</button>
-            <button class="btn" data-action="IN_PROGRESS">Start</button>
+            <button class="btn primary" data-action="ACK" ${item.state === "ACK" ? "disabled" : ""}>ACK</button>
+            <button class="btn" data-action="IN_PROGRESS" ${item.state === "IN_PROGRESS" ? "disabled" : ""}>Start</button>
             <a class="btn" href="https://grafana.shopee.io/d/pFz_MiYHz/outbound-dod" target="_blank" rel="noreferrer">Grafana ↗</a>
             <button class="btn" data-action="RECOVERED">Recovered</button>
           </div>
@@ -318,9 +329,11 @@
     document.querySelector("#incidentList").addEventListener("click", event => {
       const action = event.target.dataset.action;
       if (!action) return;
-      const incident = event.target.closest(".incident");
-      incident.querySelector(".incident-state").textContent = action;
-      incident.querySelectorAll("button").forEach(button => button.disabled = button.dataset.action === action);
+      const incidentElement = event.target.closest(".incident");
+      const incident = incidents.find(item => item.id === incidentElement.dataset.id);
+      if (!incident) return;
+      incident.state = action;
+      render(currentFilter);
     });
     render();
   </script>
