@@ -109,6 +109,20 @@ class StaticSiteDataTests(unittest.TestCase):
                     f"{code} over2h bucket must equal aggregate pendingOver2h",
                 )
 
+    def test_account_status_distribution_reconciles_with_module_totals(self):
+        for code, region in self.data["regions"].items():
+            modules = {row["module"]: row for row in region["account"]["modules"]}
+            distribution = region["account"]["statusDistribution"]
+            self.assertEqual({row["module"] for row in distribution}, set(modules))
+            for row in distribution:
+                with self.subTest(region=code, module=row["module"]):
+                    self.assertEqual(
+                        row["total"],
+                        row["active"] + row["inactive"] + row["banned"],
+                    )
+                    self.assertEqual(row["active"], modules[row["module"]]["active"])
+                    self.assertEqual(row["banned"], modules[row["module"]]["banned"])
+
     def test_trends_are_seven_days_and_match_latest_module_rates(self):
         for code, region in self.data["regions"].items():
             trends = region["trends"]
@@ -226,6 +240,20 @@ class StaticSiteDataTests(unittest.TestCase):
             self.assertIn("Demo data only", html)
             self.assertIn("<caption", html)
             self.assertIn('scope="col"', html)
+
+    def test_tablet_region_card_grids_use_two_columns(self):
+        css = (PROTOTYPE / "assets/styles.css").read_text()
+        tablet = re.search(r"@media \(max-width: 960px\) \{(.*?)\n\}", css, re.S)
+        self.assertIsNotNone(tablet)
+        rules = tablet.group(1)
+        self.assertRegex(
+            rules,
+            r"\.region-kpis\s*\{[^}]*grid-template-columns:\s*repeat\(2,",
+        )
+        self.assertRegex(
+            rules,
+            r"\.account-modules\s*\{[^}]*grid-template-columns:\s*repeat\(2,",
+        )
 
 
 if __name__ == "__main__":

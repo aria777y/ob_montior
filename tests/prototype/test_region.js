@@ -6,6 +6,7 @@ const { join } = require("node:path");
 const test = require("node:test");
 
 const {
+  summarizeAccountStatusDistribution,
   deriveTotals,
   filterRows,
   sortExceptions,
@@ -64,4 +65,19 @@ test("incident transitions preserve a consistent state machine", () => {
   transitionIncident(incident, "recover");
   assert.equal(incident.state, "recovered");
   assert.throws(() => transitionIncident(incident, "start"), /Invalid incident transition/);
+});
+
+test("account status distribution reconciles and exposes shares", () => {
+  const rows = summarizeAccountStatusDistribution(fixture.regions.ID.account);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].module, "SPBA");
+  assert.equal(rows[0].total, rows[0].active + rows[0].inactive + rows[0].banned);
+  assert.ok(Math.abs(rows[0].activeShare + rows[0].inactiveShare + rows[0].bannedShare - 100) < 1e-9);
+
+  const invalid = structuredClone(fixture.regions.ID.account);
+  invalid.statusDistribution[0].total += 1;
+  assert.throws(
+    () => summarizeAccountStatusDistribution(invalid),
+    /status distribution does not reconcile/
+  );
 });

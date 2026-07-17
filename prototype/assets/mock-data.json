@@ -26,6 +26,10 @@
       "pendingAging": { "under5m": 310, "from5To30m": 160, "from30mTo2h": 90, "over2h": 135 },
       "account": {
         "status": "watch",
+        "statusDistribution": [
+          { "module": "SPBA", "active": 4812000, "inactive": 182000, "banned": 142, "total": 4994142 },
+          { "module": "APBA", "active": 1190000, "inactive": 56000, "banned": 31, "total": 1246031 }
+        ],
         "modules": [
           { "module": "SPBA", "new": 12430, "active": 4812000, "checked": 12180, "rejected": 224, "rejectRate": 1.8, "banned": 142, "defaultRate": 83.4 },
           { "module": "APBA", "new": 3980, "active": 1190000, "checked": 3920, "rejected": 47, "rejectRate": 1.2, "banned": 31, "defaultRate": 79.8 }
@@ -62,6 +66,10 @@
       "pendingAging": { "under5m": 76, "from5To30m": 31, "from30mTo2h": 15, "over2h": 25 },
       "account": {
         "status": "healthy",
+        "statusDistribution": [
+          { "module": "SPBA", "active": 1880000, "inactive": 74000, "banned": 24, "total": 1954024 },
+          { "module": "APBA", "active": 620000, "inactive": 21000, "banned": 8, "total": 641008 }
+        ],
         "modules": [
           { "module": "SPBA", "new": 5210, "active": 1880000, "checked": 5170, "rejected": 36, "rejectRate": 0.7, "banned": 24, "defaultRate": 85.1 },
           { "module": "APBA", "new": 1840, "active": 620000, "checked": 1828, "rejected": 9, "rejectRate": 0.5, "banned": 8, "defaultRate": 81.2 }
@@ -96,6 +104,10 @@
       "pendingAging": { "under5m": 30, "from5To30m": 17, "from30mTo2h": 7, "over2h": 14 },
       "account": {
         "status": "healthy",
+        "statusDistribution": [
+          { "module": "SPBA", "active": 2310000, "inactive": 82000, "banned": 18, "total": 2392018 },
+          { "module": "APBA", "active": 710000, "inactive": 24000, "banned": 6, "total": 734006 }
+        ],
         "modules": [
           { "module": "SPBA", "new": 6830, "active": 2310000, "checked": 6790, "rejected": 34, "rejectRate": 0.5, "banned": 18, "defaultRate": 86.4 },
           { "module": "APBA", "new": 2110, "active": 710000, "checked": 2095, "rejected": 8, "rejectRate": 0.4, "banned": 6, "defaultRate": 82.7 }
@@ -130,6 +142,10 @@
       "pendingAging": { "under5m": 72, "from5To30m": 45, "from30mTo2h": 30, "over2h": 73 },
       "account": {
         "status": "healthy",
+        "statusDistribution": [
+          { "module": "SPBA", "active": 1640000, "inactive": 68000, "banned": 27, "total": 1708027 },
+          { "module": "APBA", "active": 490000, "inactive": 18000, "banned": 9, "total": 508009 }
+        ],
         "modules": [
           { "module": "SPBA", "new": 4720, "active": 1640000, "checked": 4670, "rejected": 42, "rejectRate": 0.9, "banned": 27, "defaultRate": 84.2 },
           { "module": "APBA", "new": 1530, "active": 490000, "checked": 1514, "rejected": 11, "rejectRate": 0.7, "banned": 9, "defaultRate": 80.9 }

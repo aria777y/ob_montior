@@ -167,7 +167,32 @@
     return `<tr><th colspan="3" scope="row">Visible total</th><td>${count(totals.attempts)}</td><td>${count(totals.success)}</td><td>${rate(totals.successRate)}</td><td>${money(totals.attemptAmountUsd)}</td><td>${money(totals.successAmountUsd)}</td><td>${count(totals.failed)}</td><td>${count(totals.pending)}</td><td>${count(totals.pendingOver2h)}</td><td>${totals.avgProcessingSec == null ? "—" : `${Math.round(totals.avgProcessingSec)} sec`}</td><td colspan="2">—</td></tr>`;
   }
 
+  function summarizeAccountStatusDistribution(account) {
+    const modules = new Map(account.modules.map(row => [row.module, row]));
+    return account.statusDistribution.map(row => {
+      const module = modules.get(row.module);
+      const calculatedTotal = row.active + row.inactive + row.banned;
+      if (!module || calculatedTotal !== row.total || module.active !== row.active || module.banned !== row.banned) {
+        throw new Error(`${row.module} status distribution does not reconcile`);
+      }
+      const share = value => row.total ? value / row.total * 100 : 0;
+      return {
+        ...row,
+        activeShare: share(row.active),
+        inactiveShare: share(row.inactive),
+        bannedShare: share(row.banned)
+      };
+    });
+  }
+
   function renderAccount(region, element) {
+    const distribution = summarizeAccountStatusDistribution(region.account).map(row => `<article class="distribution-card">
+      <div class="distribution-title"><strong>${escapeHtml(row.module)}</strong><span>${count(row.total)} total</span></div>
+      <div class="distribution-bar" aria-label="${escapeHtml(row.module)} status distribution">
+        <i class="active" style="width:${row.activeShare}%"></i><i class="inactive" style="width:${row.inactiveShare}%"></i><i class="banned" style="width:${row.bannedShare}%"></i>
+      </div>
+      <div class="distribution-legend"><span><i class="key active"></i>Active ${count(row.active)} (${rate(row.activeShare)})</span><span><i class="key inactive"></i>Inactive ${count(row.inactive)} (${rate(row.inactiveShare)})</span><span><i class="key banned"></i>Banned ${count(row.banned)} (${rate(row.bannedShare)})</span></div>
+    </article>`).join("");
     const cards = region.account.modules.map(row => `<article class="account-card">
       <div class="account-title"><strong>${escapeHtml(row.module)}</strong><span class="status-pill ${row.rejectRate >= 1.5 ? "watch" : "healthy"}">${rate(row.rejectRate)}</span></div>
       <dl><div><dt>New</dt><dd>${count(row.new)}</dd></div><div><dt>Active</dt><dd>${count(row.active)}</dd></div><div><dt>Checked</dt><dd>${count(row.checked)}</dd></div><div><dt>Rejected</dt><dd>${count(row.rejected)}</dd></div><div><dt>Banned</dt><dd>${count(row.banned)}</dd></div><div><dt>Default rate</dt><dd>${rate(row.defaultRate)}</dd></div></dl>
@@ -175,7 +200,7 @@
     const banks = [...region.account.bankExceptions].sort((a, b) => b.rejectRate - a.rejectRate).map(row =>
       `<tr><td>${escapeHtml(row.bank)}</td><td>${rate(row.rejectRate)}</td><td><span class="status-pill ${escapeHtml(row.status)}">${titleCase(row.status)}</span></td></tr>`
     ).join("");
-    element.innerHTML = `<div class="account-modules">${cards}</div><div class="table-wrap compact-table"><table><caption>Bank-level account exceptions</caption><thead><tr><th scope="col">Bank</th><th scope="col">Reject Rate</th><th scope="col">Status</th></tr></thead><tbody>${banks}</tbody></table></div>`;
+    element.innerHTML = `<section class="account-distribution" aria-labelledby="statusDistributionHeading"><h3 id="statusDistributionHeading">Status distribution</h3><div class="distribution-grid">${distribution}</div></section><div class="account-modules">${cards}</div><div class="table-wrap compact-table"><table><caption>Bank-level account exceptions</caption><thead><tr><th scope="col">Bank</th><th scope="col">Reject Rate</th><th scope="col">Status</th></tr></thead><tbody>${banks}</tbody></table></div>`;
   }
 
   function incidentButtons(incident, index) {
@@ -287,5 +312,5 @@
     }, fetch).load();
   }
 
-  return { createRegionApp, deriveTotals, filterRows, sortExceptions, start, transitionIncident };
+  return { createRegionApp, deriveTotals, filterRows, sortExceptions, start, summarizeAccountStatusDistribution, transitionIncident };
 }));

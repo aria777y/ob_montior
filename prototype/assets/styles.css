@@ -197,6 +197,22 @@ tbody tr:hover { background: #f8fafc; }
 .aging-row:last-child .aging-track i { background: var(--red); }
 
 .account-modules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.account-distribution h3 { margin: 0 0 10px; font-size: 13px; }
+.distribution-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.distribution-card { padding: 12px; border: 1px solid var(--line); border-radius: 9px; }
+.distribution-title { display: flex; justify-content: space-between; gap: 8px; }
+.distribution-title span { color: var(--muted); font-size: 12px; }
+.distribution-bar { display: flex; width: 100%; height: 9px; overflow: hidden; margin: 10px 0; border-radius: 99px; background: #eef2f7; }
+.distribution-bar i { display: block; min-width: 1px; }
+.distribution-bar .active,
+.distribution-legend .active { background: var(--green); }
+.distribution-bar .inactive,
+.distribution-legend .inactive { background: #94a3b8; }
+.distribution-bar .banned,
+.distribution-legend .banned { background: var(--red); }
+.distribution-legend { display: grid; gap: 4px; color: var(--muted); font-size: 11px; }
+.distribution-legend span { display: flex; align-items: center; gap: 5px; }
+.distribution-legend .key { width: 7px; height: 7px; border-radius: 50%; }
 .account-card { padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #f9fbfd; }
 .account-title { display: flex; justify-content: space-between; align-items: center; }
 .account-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; }
@@ -216,7 +232,9 @@ tbody tr:hover { background: #f8fafc; }
   .regions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid { grid-template-columns: 1fr; }
   .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .region-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .region-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .account-modules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .distribution-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 600px) {
@@ -232,7 +250,8 @@ tbody tr:hover { background: #f8fafc; }
   .table-wrap { -webkit-overflow-scrolling: touch; }
   .exception-title,
   .incident-title { flex-direction: column; }
-  .account-modules { grid-template-columns: 1fr; }
+  .account-modules,
+  .distribution-grid { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
